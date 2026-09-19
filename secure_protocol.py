@@ -28,6 +28,7 @@ print("Keys Generated Successfully!\n")
 message = b"Confidential Protocol Building Blocks Data: Launch Code 9982"
 print(f"Original Message: {message.decode()}")
 
+
 # STEP A: Alice signs the message with HER PRIVATE KEY (Section 2.6)
 # Under the hood, RSA-PSS hashes the message with SHA-256 before signing (Section 2.4)
 signature = alice_private_key.sign(
@@ -44,6 +45,7 @@ print(f" Digital Signature Generated (Length: {len(signature)} bytes)")
 # Combine original message + signature into a single package
 payload = message + b"||SIGNATURE_SEP||" + signature
 
+
 # STEP B: Generate temporary AES-256 Symmetric Key (Section 2.2)
 aes_key = AESGCM.generate_key(bit_length=256)
 print(f"👀 INSIDE LOOK -> Raw 32-byte AES Key: {aes_key.hex()}")
@@ -54,6 +56,7 @@ nonce = os.urandom(12) # Random initialization vector
 # Encrypt the large payload using AES-GCM
 encrypted_payload = aesgcm.encrypt(nonce, payload, None)
 print(f"👀 INSIDE LOOK -> AES Encrypted Payload (Ciphertext): {encrypted_payload[:40].hex()}...")
+
 
 # STEP C: Encrypt ONLY the 32-byte AES Key using BOB'S RSA PUBLIC KEY (Section 2.5)
 encrypted_aes_key = bob_public_key.encrypt(
@@ -76,6 +79,7 @@ print("🔒 Encrypted Payload (AES-256) & Key (RSA-2048) Ready for Transmission!
 # ==========================================
 print("Bob received the encrypted package. Processing...")
 
+
 # STEP A: Bob decrypts AES key using HIS RSA PRIVATE KEY
 decrypted_aes_key = bob_private_key.decrypt(
     encrypted_aes_key,
@@ -85,6 +89,7 @@ decrypted_aes_key = bob_private_key.decrypt(
         label=None
     )
 )
+
 
 # STEP B: Bob decrypts payload using recovered AES Key
 bob_aesgcm = AESGCM(decrypted_aes_key)
@@ -97,6 +102,7 @@ print(f"Decrypted Message: {received_message.decode()}")
 print("MALLORY INTERCEPTS THE DECRYPTED MESSAGE AND ALERTS IT!")
 tampered_message = received_message + b" [HACKED BY MALLORY]"
 print(f"Fake Message Bob is trying to verify: {tampered_message.decode()}\n")
+
 
 # STEP C: Bob verifies signature using ALICE'S PUBLIC KEY
 try:
